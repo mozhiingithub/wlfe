@@ -6,14 +6,30 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func main() {
-	ip, _ := getIP(false)
+	ip, _ := getIP(true)
 	fmt.Println(ip)
-	p, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	http.Handle("/", http.FileServer(http.Dir(p)))
-	http.ListenAndServe(":8000", nil)
+	path, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	server := &http.Server{
+		Addr:    ":8000",
+		Handler: http.DefaultServeMux,
+	}
+	http.Handle("/", http.FileServer(http.Dir(path)))
+	/*
+		c := make(chan int)
+		go func() {
+			<-c
+			srv.Close()
+		}()
+	*/
+	go server.ListenAndServe()
+	time.Sleep(10 * time.Second)
+	fmt.Println(123)
+	// c <- 1
+	server.Close()
 }
 
 //获取第一个非回环地址。参数ifIP4为是否返回ipv4。
