@@ -11,7 +11,12 @@ import (
 
 func main() {
 	ip, _ := getIP(true)
-	fmt.Println(ip)
+	if len(os.Args) < 2 {
+		fmt.Println(ip)
+	} else {
+		fmt.Println(ip, os.Args[1])
+	}
+
 	path, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	server := &http.Server{
 		Addr:    ":8000",
@@ -26,7 +31,7 @@ func main() {
 		}()
 	*/
 	go server.ListenAndServe()
-	time.Sleep(10 * time.Second)
+	time.Sleep(1 * time.Second)
 	fmt.Println(123)
 	// c <- 1
 	server.Close()
