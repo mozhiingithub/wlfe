@@ -17,7 +17,6 @@ import (
 func main() {
 
 	var (
-		ipv      bool     //是否采用ipv6
 		p        string   //端口号
 		e        error    //错误变量
 		ip       string   //本机局域网ip地址
@@ -27,15 +26,8 @@ func main() {
 		imgDir   string   //生成二维码图片文件地址
 	)
 
-	//从环境变量获知是否采用ipv6
-	if "true" == os.Getenv("WLFE_IPV6") {
-		ipv = true
-	} else {
-		ipv = false
-	}
-
 	//获取本机IP
-	ip, e = getIP(ipv)
+	ip, e = getIP()
 	ifError(e)
 
 	//获取端口号
@@ -88,7 +80,7 @@ func main() {
 }
 
 //获取第一个非回环地址。参数ifIP6为是否返回ipv6
-func getIP(ifIP6 bool) (ip string, e error) {
+func getIP() (ip string, e error) {
 	var addrs []net.Addr
 	addrs, e = net.InterfaceAddrs()
 	if nil != e {
@@ -96,7 +88,7 @@ func getIP(ifIP6 bool) (ip string, e error) {
 	}
 	for _, addr := range addrs {
 		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if (ifIP6 && nil == ipnet.IP.To4()) || (!ifIP6 && nil != ipnet.IP.To4()) {
+			if nil != ipnet.IP.To4() {
 				ip = ipnet.IP.String()
 				return
 			}
