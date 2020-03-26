@@ -1,10 +1,10 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,39 +14,48 @@ import (
 	qrcode "github.com/skip2/go-qrcode"
 )
 
-//设置flag参数
-var (
-	f   = flag.String("f", "", "文件名。")
-	p   = flag.String("p", "8000", "端口号。默认为8000。")
-	ipv = flag.Bool("ipv6", false, "是否使用ipv6地址。默认为false。")
-)
-
 func main() {
 
-	//解析flag
-	flag.Parse()
-
 	var (
-		e      error  //错误变量
-		ip     string //本机局域网ip地址
-		url    string //服务开启后，文件或文件夹对应的url
-		path   string //程序运行时所在目录
-		imgDir string //生成二维码图片文件地址
+		ipv      bool     //是否采用ipv6
+		p        string   //端口号
+		e        error    //错误变量
+		ip       string   //本机局域网ip地址
+		u        string   //服务开启后，文件或文件夹对应的url
+		urlParse *url.URL //url转码中间变量
+		path     string   //程序运行时所在目录
+		imgDir   string   //生成二维码图片文件地址
 	)
 
+	//从环境变量获知是否采用ipv6
+	if "true" == os.Getenv("WLFE_IPV6") {
+		ipv = true
+	} else {
+		ipv = false
+	}
+
 	//获取本机IP
-	ip, e = getIP(*ipv)
+	ip, e = getIP(ipv)
 	ifError(e)
 
-	//初始化文件/文件夹地址
-	url = "http://" + ip + ":" + *p
-	if "" != *f { //文件名非空
-		url += "/" + *f
+	//获取端口号
+	p = os.Getenv("WLFE_PORT")
+	if "" == p {
+		p = "8000"
 	}
+
+	//初始化文件/文件夹地址
+	u = "http://" + ip + ":" + p
+	if len(os.Args) > 1 { //文件名非空
+		u += "/" + os.Args[1]
+	}
+	urlParse, e = url.Parse(u)
+	ifError(e)
+	u = urlParse.String()
 
 	//按给定端口，初始化server
 	server := &http.Server{
-		Addr:    ":" + *p,
+		Addr:    ":" + p,
 		Handler: http.DefaultServeMux,
 	}
 
@@ -59,7 +68,7 @@ func main() {
 
 	//生成二维码
 	imgDir = strconv.Itoa(int(time.Now().UnixNano())) + ".png" //图片名
-	qrcode.WriteFile(url, qrcode.Medium, 256, imgDir)
+	qrcode.WriteFile(u, qrcode.Medium, 256, imgDir)
 
 	//开启文件服务
 	go server.ListenAndServe()
