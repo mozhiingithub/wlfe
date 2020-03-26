@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,13 +17,14 @@ import (
 func main() {
 
 	var (
-		ipv    bool   //是否采用ipv6
-		p      string //端口号
-		e      error  //错误变量
-		ip     string //本机局域网ip地址
-		url    string //服务开启后，文件或文件夹对应的url
-		path   string //程序运行时所在目录
-		imgDir string //生成二维码图片文件地址
+		ipv      bool     //是否采用ipv6
+		p        string   //端口号
+		e        error    //错误变量
+		ip       string   //本机局域网ip地址
+		u        string   //服务开启后，文件或文件夹对应的url
+		urlParse *url.URL //url转码中间变量
+		path     string   //程序运行时所在目录
+		imgDir   string   //生成二维码图片文件地址
 	)
 
 	//从环境变量获知是否采用ipv6
@@ -43,10 +45,13 @@ func main() {
 	}
 
 	//初始化文件/文件夹地址
-	url = "http://" + ip + ":" + p
+	u = "http://" + ip + ":" + p
 	if len(os.Args) > 1 { //文件名非空
-		url += "/" + os.Args[1]
+		u += "/" + os.Args[1]
 	}
+	urlParse, e = url.Parse(u)
+	ifError(e)
+	u = urlParse.String()
 
 	//按给定端口，初始化server
 	server := &http.Server{
@@ -63,7 +68,7 @@ func main() {
 
 	//生成二维码
 	imgDir = strconv.Itoa(int(time.Now().UnixNano())) + ".png" //图片名
-	qrcode.WriteFile(url, qrcode.Medium, 256, imgDir)
+	qrcode.WriteFile(u, qrcode.Medium, 256, imgDir)
 
 	//开启文件服务
 	go server.ListenAndServe()
