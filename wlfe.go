@@ -27,11 +27,11 @@ func main() {
 	flag.Parse()
 
 	var (
-		e      error
-		ip     string
-		url    string
-		path   string
-		imgDir string
+		e      error  //错误变量
+		ip     string //本机局域网ip地址
+		url    string //服务开启后，文件或文件夹对应的url
+		path   string //程序运行时所在目录
+		imgDir string //生成二维码图片文件地址
 	)
 
 	//获取本机IP
@@ -78,7 +78,7 @@ func main() {
 
 }
 
-//获取第一个非回环地址。参数ifIP6为是否返回ipv6。
+//获取第一个非回环地址。参数ifIP6为是否返回ipv6
 func getIP(ifIP6 bool) (ip string, e error) {
 	var addrs []net.Addr
 	addrs, e = net.InterfaceAddrs()
@@ -96,6 +96,7 @@ func getIP(ifIP6 bool) (ip string, e error) {
 	return
 }
 
+//判断错误是否非空，若非空，则输出错误内容并终止程序
 func ifError(e error) {
 	if nil != e {
 		log.Println(e)
