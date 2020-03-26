@@ -96,8 +96,11 @@ func getIP(ifIP6 bool) (ip string, e error) {
 	}
 	for _, addr := range addrs {
 		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if (ifIP6 && nil == ipnet.IP.To4()) || (!ifIP6 && nil != ipnet.IP.To4()) {
+			if !ifIP6 && nil != ipnet.IP.To4() {
 				ip = ipnet.IP.String()
+				return
+			} else if ifIP6 && nil == ipnet.IP.To4() {
+				ip = "[" + ipnet.IP.String() + "]"
 				return
 			}
 		}
