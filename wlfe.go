@@ -79,7 +79,7 @@ func main() {
 
 }
 
-//获取第一个非回环地址。参数ifIP6为是否返回ipv6
+//获取第一个非回环地址
 func getIP() (ip string, e error) {
 	var addrs []net.Addr
 	addrs, e = net.InterfaceAddrs()
